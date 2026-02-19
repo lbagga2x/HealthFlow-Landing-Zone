@@ -17,6 +17,13 @@ Multi-account AWS architecture for a HIPAA-compliant healthcare SaaS platform. B
 - Private subnets for application and database tiers
 - Route tables with proper traffic segregation
 
+### Security (`terraform/security/`)
+- **CloudTrail**: Organization-wide audit logging with 1-year retention
+- **GuardDuty**: AI-powered threat detection with malware scanning
+- **Security Hub**: Compliance dashboard (CIS Benchmark, PCI-DSS)
+- **AWS Config**: Resource configuration tracking and compliance rules
+- All logs encrypted and stored in immutable S3 buckets
+
 ### Modules (`terraform/modules/vpc/`)
 - Reusable VPC module with configurable CIDR blocks
 - Automatic subnet creation across availability zones
@@ -76,11 +83,13 @@ terraform destroy
 ### Why Transit Gateway? (Coming Next Phase)
 - **Scalability**: Easier to add accounts than VPC peering mesh
 - **Central management**: Single point of control for inter-account routing
-- **Future-proof**: Supports 5,000 attachments vs manual peering management
+- **Future-proof**: Supports 5,000 attachments Update README with security module documentationvs manual peering management
 
 ## Coming Next
-- [ ] Security module (GuardDuty, CloudTrail, Security Hub)
+- [x] Networking module (VPCs across 3 environments)
+- [x] Security module (CloudTrail, GuardDuty, Security Hub, Config)
 - [ ] IAM module (SCPs, Identity Center, RBAC)
 - [ ] Transit Gateway for cross-account connectivity
+- [ ] Cost analysis and optimization recommendations
 
 *This is a portfolio project demonstrating Solutions Architect skills. Not deployed to production.*
