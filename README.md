@@ -24,6 +24,15 @@ Multi-account AWS architecture for a HIPAA-compliant healthcare SaaS platform. B
 - **AWS Config**: Resource configuration tracking and compliance rules
 - All logs encrypted and stored in immutable S3 buckets
 
+### IAM (`terraform/iam/`)
+- **Service Control Policies (SCPs)**: Organization-level security guardrails
+  - CloudTrail protection (prevent audit log deletion)
+  - Encryption enforcement (all data encrypted at rest)
+  - Region restriction (us-east-1, us-west-2 only)
+  - Public S3 blocking (prevent accidental exposure)
+  - MFA requirement (all users must use multi-factor auth)
+- Defense-in-depth security model with explicit deny policies
+
 ### Modules (`terraform/modules/vpc/`)
 - Reusable VPC module with configurable CIDR blocks
 - Automatic subnet creation across availability zones
@@ -88,7 +97,7 @@ terraform destroy
 ## Coming Next
 - [x] Networking module (VPCs across 3 environments)
 - [x] Security module (CloudTrail, GuardDuty, Security Hub, Config)
-- [ ] IAM module (SCPs, Identity Center, RBAC)
+- [x] IAM module (Service Control Policies)
 - [ ] Transit Gateway for cross-account connectivity
 - [ ] Cost analysis and optimization recommendations
 
