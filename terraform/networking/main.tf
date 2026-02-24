@@ -1,5 +1,5 @@
 # DEV VPC
- module "dev_vpc" {
+module "dev_vpc" {
   source = "../modules/vpc"
 
   vpc_name    = "dev"
@@ -12,7 +12,7 @@
 }
 
 # Staging VPC
- module "staging_vpc" {
+module "staging_vpc" {
   source = "../modules/vpc"
 
   vpc_name    = "staging"
@@ -25,7 +25,7 @@
 }
 
 # Production VPC
- module "prod_vpc" {
+module "prod_vpc" {
   source = "../modules/vpc"
 
   vpc_name    = "prod"

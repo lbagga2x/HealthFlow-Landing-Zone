@@ -1,11 +1,11 @@
 terraform {
-    required_version = ">=1.0"
-    required_providers {
-        aws = {
-            source = "hashicorp/aws"
-            version = "~> 5.0"
-        }
+  required_version = ">=1.0"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
     }
+  }
 }
 
 provider "aws" {
@@ -13,9 +13,9 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "healthflow-landing-zone"
-      ManagedBy   = "terraform"
-      Owner       = "platform-team"
+      Project   = "healthflow-landing-zone"
+      ManagedBy = "terraform"
+      Owner     = "platform-team"
     }
   }
 }
