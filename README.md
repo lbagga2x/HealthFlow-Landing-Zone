@@ -16,6 +16,7 @@ Multi-account AWS architecture for a HIPAA-compliant healthcare SaaS platform. B
 - Public subnets for load balancers and NAT Gateways
 - Private subnets for application and database tiers
 - Route tables with proper traffic segregation
+- High availability across 2 availability zones per VPC
 
 ### Security (`terraform/security/`)
 - **CloudTrail**: Organization-wide audit logging with 1-year retention
@@ -33,17 +34,50 @@ Multi-account AWS architecture for a HIPAA-compliant healthcare SaaS platform. B
   - MFA requirement (all users must use multi-factor auth)
 - Defense-in-depth security model with explicit deny policies
 
+### Transit Gateway (`terraform/transit-gateway/`)
+- **Hub-and-spoke architecture** for cross-account connectivity
+- Centralized routing (auto-propagation of VPC routes)
+- Scales linearly (10 VPCs = 10 attachments vs 45 peering connections)
+- DNS support for cross-account name resolution
+- Ready for VPN, multi-region, and firewall inspection
+
 ### Modules (`terraform/modules/vpc/`)
 - Reusable VPC module with configurable CIDR blocks
 - Automatic subnet creation across availability zones
 - Integrated NAT Gateway and Internet Gateway setup
 
+## Cost Analysis
+
+**Monthly Infrastructure Baseline: ~$818**
+
+Detailed breakdown available in [`docs/COST_ANALYSIS.md`](docs/COST_ANALYSIS.md)
+
+| Category | Monthly Cost |
+|----------|--------------|
+| Networking (NAT Gateway, Transit Gateway) | $311-461 |
+| Security & Compliance (CloudTrail, GuardDuty, Security Hub, Config) | $358 |
+| IAM (SCPs, Identity Center) | $0 |
+| Data Transfer | $65-120 |
+
+**Budget Utilization:** 16.4% of $5,000 monthly infrastructure budget
+
+**Cost scales linearly:** At 10 accounts = $2,030/month (41% of budget)
+
+## Design Decisions
+
+All major architecture decisions are documented in Architecture Decision Records (ADRs):
+
+- **Transit Gateway vs VPC Peering**: [`terraform/transit-gateway/DESIGN.md`](terraform/transit-gateway/DESIGN.md)
+  - Chose Transit Gateway for operational simplicity and scalability
+  - Cost analysis shows TGW cheaper than peering when including engineering labor
+  - Enables future features: VPN, multi-region, centralized inspection
+
 ## Project Structure
 ```
 healthflow-landing-zone/
 ├── docs/
-│   ├── REQUIREMENTS.md          # Business requirements and constraints
-│   └── ARCHITECTURE.html        # Visual architecture diagram
+│   ├── REQUIREMENTS.md         
+│   
 ├── terraform/
 │   ├── modules/
 │   │   └── vpc/                 # Reusable VPC module
@@ -98,7 +132,7 @@ terraform destroy
 - [x] Networking module (VPCs across 3 environments)
 - [x] Security module (CloudTrail, GuardDuty, Security Hub, Config)
 - [x] IAM module (Service Control Policies)
-- [ ] Transit Gateway for cross-account connectivity
-- [ ] Cost analysis and optimization recommendations
+- [x] Transit Gateway for cross-account connectivity
+- [x] Comprehensive cost analysis
 
 *This is a portfolio project demonstrating Solutions Architect skills. Not deployed to production.*
