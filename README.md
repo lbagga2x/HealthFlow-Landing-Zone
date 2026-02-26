@@ -2,12 +2,67 @@
 
 Multi-account AWS architecture for a HIPAA-compliant healthcare SaaS platform. Built with Terraform to demonstrate Solutions Architect capabilities.
 
+---
+
 ## Architecture Overview
 
 - **Multi-Account Structure**: Separate Dev, Staging, and Production accounts for security isolation
 - **Network Design**: VPC per account with public/private subnet architecture across 2 availability zones
 - **High Availability**: Resources distributed across us-east-1a and us-east-1b
 - **Security**: Private subnets by default, NAT Gateway for outbound traffic, Internet Gateway for load balancers only
+
+---
+
+## Architecture Diagrams
+
+### 1. Multi-Account Architecture Overview
+> AWS Organizations structure with account isolation, SCPs, and VPC layout per environment.
+
+![Multi-Account Architecture](docs/diagrams/01_multi_account_architecture.png)
+
+---
+
+### 2. Network Topology
+> VPC structure showing public/private subnet tiers, NAT Gateways, Internet Gateways, and AZ distribution.
+
+![Network Topology](docs/diagrams/02_network_topology.png)
+
+---
+
+### 3. Transit Gateway Hub-and-Spoke
+> Central Transit Gateway connecting Dev, Staging, and Prod VPCs with planned future accounts.
+
+![Transit Gateway](docs/diagrams/03_transit_gateway.png)
+
+---
+
+### 4. Security Architecture (HIPAA Stack)
+> CloudTrail → S3, GuardDuty → Security Hub pipeline with CIS Benchmark and PCI-DSS compliance.
+
+![Security Architecture](docs/diagrams/04_security_architecture.png)
+
+---
+
+### 5. IAM & SCP Policy Hierarchy
+> Organizations root → OUs → accounts with 5 SCPs enforcing defence-in-depth security.
+
+![IAM SCP Hierarchy](docs/diagrams/05_iam_scp_hierarchy.png)
+
+---
+
+### 6. Traffic Flow (Inbound & Outbound)
+> End-user → IGW → ALB → App tier → DB tier, with outbound egress through NAT Gateway.
+
+![Traffic Flow](docs/diagrams/06_traffic_flow.png)
+
+---
+
+### 7. Terraform Module Structure
+> Module dependencies, state isolation, deployment order, and shared configuration.
+
+![Terraform Modules](docs/diagrams/07_terraform_modules.png)
+
+---
 
 ## Infrastructure Components
 
@@ -46,6 +101,8 @@ Multi-account AWS architecture for a HIPAA-compliant healthcare SaaS platform. B
 - Automatic subnet creation across availability zones
 - Integrated NAT Gateway and Internet Gateway setup
 
+---
+
 ## Cost Analysis
 
 **Monthly Infrastructure Baseline: ~$818**
@@ -54,14 +111,16 @@ Detailed breakdown available in [`docs/COST_ANALYSIS.md`](docs/COST_ANALYSIS.md)
 
 | Category | Monthly Cost |
 |----------|--------------|
-| Networking (NAT Gateway, Transit Gateway) | $311-461 |
+| Networking (NAT Gateway, Transit Gateway) | $311–461 |
 | Security & Compliance (CloudTrail, GuardDuty, Security Hub, Config) | $358 |
 | IAM (SCPs, Identity Center) | $0 |
-| Data Transfer | $65-120 |
+| Data Transfer | $65–120 |
 
-**Budget Utilization:** 16.4% of $5,000 monthly infrastructure budget
+**Budget Utilisation:** 16.4% of $5,000 monthly infrastructure budget
 
 **Cost scales linearly:** At 10 accounts = $2,030/month (41% of budget)
+
+---
 
 ## Design Decisions
 
@@ -69,70 +128,114 @@ All major architecture decisions are documented in Architecture Decision Records
 
 - **Transit Gateway vs VPC Peering**: [`terraform/transit-gateway/DESIGN.md`](terraform/transit-gateway/DESIGN.md)
   - Chose Transit Gateway for operational simplicity and scalability
-  - Cost analysis shows TGW cheaper than peering when including engineering labor
-  - Enables future features: VPN, multi-region, centralized inspection
+  - Cost analysis shows TGW cheaper than peering when including engineering labour
+  - Enables future features: VPN, multi-region, centralised inspection
+
+---
 
 ## Project Structure
+
 ```
 healthflow-landing-zone/
 ├── docs/
-│   ├── REQUIREMENTS.md         
-│   
+│   ├── COST_ANALYSIS.md
+│   └── diagrams/
+│       ├── 01_multi_account_architecture.png
+│       ├── 02_network_topology.png
+│       ├── 03_transit_gateway.png
+│       ├── 04_security_architecture.png
+│       ├── 05_iam_scp_hierarchy.png
+│       ├── 06_traffic_flow.png
+│       └── 07_terraform_modules.png
 ├── terraform/
 │   ├── modules/
-│   │   └── vpc/                 # Reusable VPC module
+│   │   └── vpc/                  # Reusable VPC module
 │   │       ├── main.tf
 │   │       ├── variables.tf
 │   │       └── outputs.tf
-│   └── networking/              # VPC deployment
+│   ├── networking/               # VPC deployment
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── provider.tf
+│   ├── security/                 # CloudTrail, GuardDuty, Security Hub, Config
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   ├── outputs.tf
+│   │   └── provider.tf
+│   ├── iam/                      # SCPs and IAM roles
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   ├── outputs.tf
+│   │   └── provider.tf
+│   └── transit-gateway/          # TGW hub-and-spoke
 │       ├── main.tf
 │       ├── variables.tf
-│       └── provider.tf
+│       ├── outputs.tf
+│       ├── provider.tf
+│       └── DESIGN.md
 └── README.md
 ```
 
+---
+
 ## Usage
+
 ```bash
-# Initialize Terraform
+# Deployment order: IAM → Networking → Security → Transit Gateway
+
+# 1. IAM (SCPs)
+cd terraform/iam
+terraform init && terraform plan && terraform apply
+
+# 2. Networking (VPCs)
 cd terraform/networking
-terraform init
+terraform init && terraform plan && terraform apply
 
-# Preview changes
-terraform plan
+# 3. Security (CloudTrail, GuardDuty, etc.)
+cd terraform/security
+terraform init && terraform plan && terraform apply
 
-# Deploy infrastructure (costs ~$100/month for NAT Gateways)
-terraform apply
+# 4. Transit Gateway
+cd terraform/transit-gateway
+terraform init && terraform plan && terraform apply
 
-# Destroy when done
+# Destroy when done (to avoid costs)
 terraform destroy
 ```
 
+---
+
 ## AWS Services Used
 
-- **VPC**: Network isolation
-- **Subnets**: Public/private separation
-- **Internet Gateway**: Public internet access
-- **NAT Gateway**: Private subnet outbound access
-- **Route Tables**: Traffic routing
-- **Elastic IPs**: Static IPs for NAT Gateways
+| Service | Purpose |
+|---------|---------|
+| VPC | Network isolation per environment |
+| Subnets | Public/private tier separation |
+| Internet Gateway | Public internet access |
+| NAT Gateway | Private subnet outbound access |
+| Route Tables | Traffic routing and segregation |
+| Elastic IPs | Static IPs for NAT Gateways |
+| Transit Gateway | Cross-account hub-and-spoke networking |
+| CloudTrail | Organisation-wide audit logging |
+| GuardDuty | AI-powered threat detection |
+| Security Hub | Compliance dashboard (CIS, PCI-DSS) |
+| AWS Config | Resource configuration tracking |
+| IAM / SCPs | Identity management and guardrails |
+| S3 | Encrypted audit log storage |
+| AWS Organizations | Multi-account management |
 
-## Design Decisions
+---
 
-### Why Multi-Account?
-- **Security blast radius**: Compromised dev account cannot affect production
-- **Cost visibility**: Separate billing per environment
-- **Compliance**: HIPAA requires clear separation of production data
+## Completion Status
 
-### Why Transit Gateway? (Coming Next Phase)
-- **Scalability**: Easier to add accounts than VPC peering mesh
-- **Central management**: Single point of control for inter-account routing
-- **Future-proof**: Supports 5,000 attachments Update README with security module documentationvs manual peering management
-
-## Coming Next
 - [x] Networking module (VPCs across 3 environments)
 - [x] Security module (CloudTrail, GuardDuty, Security Hub, Config)
 - [x] IAM module (Service Control Policies)
 - [x] Transit Gateway for cross-account connectivity
 - [x] Comprehensive cost analysis
+- [x] Architecture Decision Records (ADRs)
+- [x] Full architecture diagram suite (7 diagrams)
+
+---
 
 *This is a portfolio project demonstrating Solutions Architect skills. Not deployed to production.*
